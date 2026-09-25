@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+<!-- This site is hosted on Netlify. Anyone can build and deploy a site
+     like this one for free: https://netlify.new/?utm_campaign=loops&utm_source=ai-legible&utm_medium=owned&utm_content=comment&utm_id=eecf8f6b-a148-4527-90f4-740bf40eb8fd
+     Netlify hosting facts for this site: static/SSR served via Netlify Edge. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LogicLab — Simulator Tabel Kebenaran</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- ░░ HERO HEADER ░░ -->
+  <header class="hero">
+    <div class="hero-bg-shapes">
+      <div class="shape shape-1"></div>
+      <div class="shape shape-2"></div>
+      <div class="shape shape-3"></div>
+    </div>
+    <div class="container hero-content">
+      <div class="hero-badge">⚡ Matematika Diskrit · PJBL-1</div>
+      <h1 class="hero-title">Logic<span class="accent">Nova</span></h1>
+      <p class="hero-desc">
+        Simulator tabel kebenaran &amp; verifikator argumen logika.<br/>
+        Masukkan ekspresi, lihat hasilnya secara instan.
+      </p>
+      <div class="hero-pills">
+        <span class="pill">Tautologi</span>
+        <span class="pill">Kontradiksi</span>
+        <span class="pill">Kontingensi</span>
+        <span class="pill">Modus Ponens</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ░░ MAIN APP ░░ -->
+  <main class="container main-app">
+
+    <!-- TAB NAV -->
+    <div class="tab-wrapper">
+      <nav class="tab-nav" role="tablist">
+        <button class="tab-btn active" data-tab="truth-table" role="tab">
+          <span class="tab-icon">📋</span>
+          <span>Tabel Kebenaran</span>
+        </button>
+        <button class="tab-btn" data-tab="argument" role="tab">
+          <span class="tab-icon">🔍</span>
+          <span>Verifikator Argumen</span>
+        </button>
+        <button class="tab-btn" data-tab="guide" role="tab">
+          <span class="tab-icon">📖</span>
+          <span>Panduan</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         TAB 1 — TABEL KEBENARAN
+    ══════════════════════════════════════════ -->
+    <section id="tab-truth-table" class="tab-panel active">
+
+      <div class="card input-card">
+        <div class="card-header">
+          <div class="card-icon-wrap">🧮</div>
+          <div>
+            <h2 class="card-title">Simulator Tabel Kebenaran</h2>
+            <p class="card-subtitle">Masukkan ekspresi logika dan lihat semua kemungkinan nilainya</p>
+          </div>
+        </div>
+
+        <div class="input-area">
+          <label for="expression-input" class="input-label">Ekspresi Logika</label>
+          <div class="input-row">
+            <div class="input-wrapper">
+              <span class="input-prefix">ƒ(x)</span>
+              <input
+                type="text"
+                id="expression-input"
+                class="text-input"
+                placeholder="Contoh: (p AND q) OR (NOT r)"
+                autocomplete="off"
+                spellcheck="false"
+              />
+            </div>
+            <button id="generate-btn" class="btn btn-primary">
+              <span>Generate</span>
+              <span class="btn-arrow">→</span>
+            </button>
+            <button id="clear-btn" class="btn btn-ghost">Clear</button>
+          </div>
+        </div>
+
+        <!-- Operator chips -->
+        <div class="chips-label">Sisipkan operator:</div>
+        <div class="chips-row">
+          <button class="chip chip-op"  data-op=" AND ">AND</button>
+          <button class="chip chip-op"  data-op=" OR ">OR</button>
+          <button class="chip chip-op"  data-op="NOT ">NOT</button>
+          <button class="chip chip-op"  data-op=" IMPLIES ">IMPLIES</button>
+          <button class="chip chip-op"  data-op=" IFF ">IFF</button>
+          <button class="chip chip-op"  data-op=" XOR ">XOR</button>
+          <button class="chip chip-paren" data-op="(">(</button>
+          <button class="chip chip-paren" data-op=")">)</button>
+        </div>
+
+        <!-- Preset examples -->
+        <div class="chips-label" style="margin-top:0.5rem;">Coba contoh:</div>
+        <div class="chips-row">
+          <button class="chip chip-example" data-expr="p OR (NOT p)">p ∨ ¬p</button>
+          <button class="chip chip-example" data-expr="p AND (NOT p)">p ∧ ¬p</button>
+          <button class="chip chip-example" data-expr="p AND q">p ∧ q</button>
+          <button class="chip chip-example" data-expr="(p IMPLIES q) IFF ((NOT q) IMPLIES (NOT p))">Kontrapositif</button>
+          <button class="chip chip-example" data-expr="(p OR q) AND (NOT p IMPLIES q)">De Morgan</button>
+        </div>
+
+        <div id="expression-error" class="alert alert-error hidden"></div>
+      </div>
+
+      <!-- Hasil -->
+      <div id="result-section" class="hidden">
+
+        <div class="result-row">
+          <div class="card result-card">
+            <div class="result-label">Klasifikasi</div>
+            <div id="classification-result" class="classification-badge"></div>
+            <p id="classification-desc" class="result-desc"></p>
+          </div>
+          <div class="card result-card stat-card">
+            <div class="result-label">Statistik</div>
+            <div id="stats-row" class="stats-row"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header-simple">
+            <h3 class="card-title-sm">Tabel Kebenaran</h3>
+            <span id="table-row-count" class="badge-count"></span>
+          </div>
+          <div class="table-wrapper">
+            <table id="truth-table" class="truth-table"></table>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         TAB 2 — VERIFIKATOR ARGUMEN
+    ══════════════════════════════════════════ -->
+    <section id="tab-argument" class="tab-panel hidden">
+
+      <div class="card input-card">
+        <div class="card-header">
+          <div class="card-icon-wrap">🔍</div>
+          <div>
+            <h2 class="card-title">Verifikator Argumen</h2>
+            <p class="card-subtitle">Cek apakah kesimpulan selalu benar ketika semua premis benar</p>
+          </div>
+        </div>
+
+        <!-- Preset argumen -->
+        <div class="chips-label">Coba contoh argumen:</div>
+        <div class="chips-row" style="margin-bottom:1.25rem;">
+          <button class="chip chip-example" data-arg="modus-ponens">Modus Ponens</button>
+          <button class="chip chip-example" data-arg="modus-tollens">Modus Tollens</button>
+          <button class="chip chip-example" data-arg="hypothetical">Silogisme Hipotetis</button>
+          <button class="chip chip-example" data-arg="invalid">Contoh Tidak Valid</button>
+        </div>
+
+        <div id="premises-container"></div>
+
+        <button id="add-premise-btn" class="btn btn-outline btn-sm">
+          <span>＋</span> Tambah Premis
+        </button>
+
+        <div class="divider"></div>
+
+        <div class="input-area">
+          <label for="conclusion-input" class="input-label">
+            <span class="label-badge label-conclusion">∴</span> Kesimpulan
+          </label>
+          <div class="input-wrapper">
+            <span class="input-prefix">C</span>
+            <input
+              type="text"
+              id="conclusion-input"
+              class="text-input"
+              placeholder="Contoh: q"
+              autocomplete="off"
+              spellcheck="false"
+            />
+          </div>
+        </div>
+
+        <div class="btn-row" style="margin-top:1.25rem;">
+          <button id="verify-btn" class="btn btn-primary">
+            <span>Verifikasi</span>
+            <span class="btn-arrow">→</span>
+          </button>
+          <button id="clear-arg-btn" class="btn btn-ghost">Reset</button>
+        </div>
+
+        <div id="argument-error" class="alert alert-error hidden"></div>
+      </div>
+
+      <div id="argument-result-section" class="hidden">
+        <div class="card verdict-card">
+          <div id="argument-verdict" class="verdict-badge"></div>
+          <p id="argument-explanation" class="result-desc"></p>
+        </div>
+
+        <div class="card">
+          <div class="card-header-simple">
+            <h3 class="card-title-sm">Tabel Evaluasi Argumen</h3>
+            <span class="badge-hint">Baris merah = counter-example</span>
+          </div>
+          <div class="table-wrapper">
+            <table id="argument-table" class="truth-table"></table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         TAB 3 — PANDUAN
+    ══════════════════════════════════════════ -->
+    <section id="tab-guide" class="tab-panel hidden">
+
+      <div class="guide-grid">
+
+        <div class="card">
+          <h3 class="guide-section-title">⚙️ Operator yang Didukung</h3>
+          <table class="guide-table">
+            <thead>
+              <tr><th>Operator</th><th>Simbol</th><th>Keterangan</th><th>Contoh</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>AND</code></td><td><code>&amp;&amp;</code> <code>&amp;</code></td><td>Konjungsi (dan)</td><td><code>p AND q</code></td></tr>
+              <tr><td><code>OR</code></td><td><code>||</code> <code>|</code></td><td>Disjungsi (atau)</td><td><code>p OR q</code></td></tr>
+              <tr><td><code>NOT</code></td><td><code>!</code> <code>~</code></td><td>Negasi (tidak)</td><td><code>NOT p</code></td></tr>
+              <tr><td><code>IMPLIES</code></td><td><code>-&gt;</code></td><td>Implikasi</td><td><code>p IMPLIES q</code></td></tr>
+              <tr><td><code>IFF</code></td><td><code>&lt;-&gt;</code></td><td>Biimplikasi</td><td><code>p IFF q</code></td></tr>
+              <tr><td><code>XOR</code></td><td><code>^</code></td><td>Eksklusif or</td><td><code>p XOR q</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <h3 class="guide-section-title">🏷️ Klasifikasi Ekspresi</h3>
+          <div class="classify-cards">
+            <div class="classify-item classify-tautology">
+              <div class="classify-name">✅ Tautologi</div>
+              <div class="classify-desc">Bernilai <strong>TRUE</strong> untuk semua kombinasi variabel. Contoh: <code>p OR (NOT p)</code></div>
+            </div>
+            <div class="classify-item classify-contradiction">
+              <div class="classify-name">❌ Kontradiksi</div>
+              <div class="classify-desc">Bernilai <strong>FALSE</strong> untuk semua kombinasi variabel. Contoh: <code>p AND (NOT p)</code></div>
+            </div>
+            <div class="classify-item classify-contingency">
+              <div class="classify-name">🔀 Kontingensi</div>
+              <div class="classify-desc">Nilainya bergantung pada variabel — bisa T maupun F. Contoh: <code>p AND q</code></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 class="guide-section-title">📐 Aturan Inferensi Klasik</h3>
+          <div class="inference-list">
+            <div class="inference-item">
+              <div class="inference-name">Modus Ponens</div>
+              <div class="inference-formula">P1: <code>p → q</code> &nbsp;·&nbsp; P2: <code>p</code> &nbsp;∴&nbsp; <code>q</code></div>
+            </div>
+            <div class="inference-item">
+              <div class="inference-name">Modus Tollens</div>
+              <div class="inference-formula">P1: <code>p → q</code> &nbsp;·&nbsp; P2: <code>¬q</code> &nbsp;∴&nbsp; <code>¬p</code></div>
+            </div>
+            <div class="inference-item">
+              <div class="inference-name">Silogisme Hipotetis</div>
+              <div class="inference-formula">P1: <code>p → q</code> &nbsp;·&nbsp; P2: <code>q → r</code> &nbsp;∴&nbsp; <code>p → r</code></div>
+            </div>
+            <div class="inference-item">
+              <div class="inference-name">Disjunctive Syllogism</div>
+              <div class="inference-formula">P1: <code>p OR q</code> &nbsp;·&nbsp; P2: <code>¬p</code> &nbsp;∴&nbsp; <code>q</code></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 class="guide-section-title">💡 Tips Penulisan</h3>
+          <ul class="tips-list">
+            <li>Variabel boleh huruf apa saja: <code>p</code>, <code>q</code>, <code>r</code>, <code>x1</code>, <code>hujan</code></li>
+            <li>Gunakan tanda kurung <code>()</code> untuk mengatur urutan evaluasi</li>
+            <li>Operator tidak case-sensitive: <code>and</code> = <code>AND</code></li>
+            <li>Simbol bisa dicampur: <code>p &amp;&amp; !q</code> = <code>p AND (NOT q)</code></li>
+            <li>Maksimal <strong>10 variabel</strong> (2¹⁰ = 1024 baris)</li>
+          </ul>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ░░ TEAM SECTION ░░ -->
+  <section class="team-section">
+    <div class="container">
+      <div class="team-header">
+        <div class="team-eyebrow">👥 Kelompok PJBL-1</div>
+        <h2 class="team-title">Anggota Kelompok</h2>
+        <p class="team-subtitle">Matematika Diskrit — Simulator Tabel Kebenaran &amp; Verifikator Argumen</p>
+      </div>
+      <div class="team-grid">
+        <div class="team-card">
+          <div class="team-num">01</div>
+          <div class="team-info">
+            <div class="team-name">Tara Tursina</div>
+            <div class="team-nim">25210469</div>
+          </div>
+        </div>
+        <div class="team-card">
+          <div class="team-num">02</div>
+          <div class="team-info">
+            <div class="team-name">Kurnia Haidar</div>
+            <div class="team-nim">25210129</div>
+          </div>
+        </div>
+        <div class="team-card">
+          <div class="team-num">03</div>
+          <div class="team-info">
+            <div class="team-name">Muhammad Rezky Syawalli</div>
+            <div class="team-nim">25210395</div>
+          </div>
+        </div>
+        <div class="team-card">
+          <div class="team-num">04</div>
+          <div class="team-info">
+            <div class="team-name">Nisaul Husna</div>
+            <div class="team-nim">25210099</div>
+          </div>
+        </div>
+        <div class="team-card">
+          <div class="team-num">05</div>
+          <div class="team-info">
+            <div class="team-name">Diola Humaira</div>
+            <div class="team-nim">25210055</div>
+          </div>
+        </div>
+        <div class="team-card">
+          <div class="team-num">06</div>
+          <div class="team-info">
+            <div class="team-name">Kelvin Faturi Zayyan</div>
+            <div class="team-nim">25210451</div>
+          </div>
+        </div>
+        <div class="team-card">
+          <div class="team-num">07</div>
+          <div class="team-info">
+            <div class="team-name">M. Subhan</div>
+            <div class="team-nim">25210355</div>
+          </div>
+        </div>
+        <div class="team-card">
+          <div class="team-num">08</div>
+          <div class="team-info">
+            <div class="team-name">Okta Satria</div>
+            <div class="team-nim">25210005</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="app-footer">
+    <div class="container footer-inner">
+      <span class="footer-logo">Logic<span class="accent">Lab</span></span>
+      <span class="footer-sep">·</span>
+      <span>Proyek Mini #1 — Matematika Diskrit</span>
+    </div>
+  </footer>
+
+  <!-- Global JS error banner -->
+  <div id="global-error-banner" style="display:none;position:fixed;bottom:1rem;left:50%;transform:translateX(-50%);background:#1e1e2e;color:#f38ba8;padding:.75rem 1.25rem;border-radius:.75rem;font-size:.82rem;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,.3);"></div>
+
+  <script>
+    window.onerror = function(msg, src, line) {
+      var b = document.getElementById('global-error-banner');
+      if (b) { b.textContent = '⚠ Error: ' + msg + ' (' + src + ':' + line + ')'; b.style.display = 'block'; }
+      return false;
+    };
+  </script>
+
+  <script src="js/tokenizer.js"></script>
+  <script src="js/parser.js"></script>
+  <script src="js/evaluator.js"></script>
+  <script src="js/tableGenerator.js"></script>
+  <script src="js/argumentVerifier.js"></script>
+  <script src="js/ui.js"></script>
+</body>
+</html>
